@@ -1,0 +1,27 @@
+# Define o tipo Livro (correspondente ao POJO Book)
+type Book {
+    id: ID!
+    title: String!
+    author: String!
+    publicationYear: Int
+}
+
+# Define o tipo de entrada para Criação/Atualização
+input BookInput {
+    title: String!
+    author: String!
+    publicationYear: Int
+}
+
+# Definições de Queries (Read)
+type Query {
+    findAllBooks: [Book!]!
+    findBookById(id: ID!): Book
+}
+
+# Definições de Mutations (Create, Update, Delete)
+type Mutation {
+    createBook(book: BookInput!): Book!
+    updateBook(id: ID!, book: BookInput!): Book
+    deleteBook(id: ID!): Boolean!
+}
