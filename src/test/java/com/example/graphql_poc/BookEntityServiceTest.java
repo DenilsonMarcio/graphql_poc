@@ -1,7 +1,7 @@
 package com.example.graphql_poc;
 
-import com.example.graphql_poc.model.Book;
-import com.example.graphql_poc.repository.BookRepository;
+import com.example.graphql_poc.domain.model.Book;
+import com.example.graphql_poc.domain.port.BookRepositoryPort;
 import com.example.graphql_poc.service.BookService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BookServiceTest {
+public class BookEntityServiceTest {
 
     @Mock
-    private BookRepository bookRepository; // Mock do Repositório
+    private BookRepositoryPort bookRepository; // Mock da porta (adapter) do Repositório
 
     @InjectMocks
-    private BookService bookService; // Injeta os Mocks na classe de Serviço
+    private BookService bookService; // Injeta os Mocks na classe de Serviço via construtor
 
     @Test
     void testFindAll() {

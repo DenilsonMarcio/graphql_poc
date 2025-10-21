@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 @Data // Gera Getters, Setters, toString, equals, hashCode (Lombok)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Book {
+public class BookEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

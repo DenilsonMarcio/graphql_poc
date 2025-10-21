@@ -1,59 +1,84 @@
-# GraphQL POC (Proof of Concept)
+# GraphQL POC — Clean Architecture (Hexagonal) e Clean Code
 
-Este projeto é uma prova de conceito (POC) para uma API GraphQL utilizando Spring Boot. Ele demonstra como implementar operações CRUD (Create, Read, Update, Delete) para uma entidade simples chamada `Book` (Livro), usando o Spring for GraphQL.
+Este repositório é uma prova de conceito (POC) de uma API GraphQL construída com Spring Boot.
+O projeto foi refatorado para seguir princípios de Clean Code e a Arquitetura Hexagonal (Ports & Adapters).
 
-## Tecnologias Utilizadas
-- **Java 21+**
-- **Spring Boot**
-- **Spring for GraphQL**
-- **Maven**
+Versão do Java requerida: **Java 21** (conforme `pom.xml`).
 
-## Estrutura do Projeto
+Visão geral
+---------
+- Linguagem: Java 21
+- Framework: Spring Boot
+- API: Spring for GraphQL
+- Build: Maven
+
+Objetivo
+--------
+Demonstrar uma aplicação pequena com:
+- Separação clara entre domínio e infraestrutura
+- Portas (interfaces) que definem contratos de entrada/saída
+- Adaptadores (adapters) que implementam as portas (ex.: adaptação para JPA)
+- Código testável e com dependências invertidas via injeção de dependência
+
+Estrutura do projeto (principal)
+--------------------------------
 ```
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/example/graphql_poc/
-│   │   │       ├── GraphqlPocApplication.java
-│   │   │       ├── controller/BookController.java
-│   │   │       ├── model/Book.java
-│   │   │       ├── repository/BookRepository.java
-│   │   │       └── service/BookService.java
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── graphql/schema.graphqls
-│   └── test/
-│       └── java/com/example/graphql_poc/
-│           ├── BookServiceTest.java
-│           └── GraphqlPocApplicationTests.java
-├── pom.xml
-└── README.md
+src/main/java/
+└─ com.example.graphql_poc
+   ├─ GraphqlPocApplication.java           # Spring Boot bootstrap
+   ├─ controller/                          # Entrada (GraphQL controllers / adapters in-bound)
+   │  └─ BookController.java
+   ├─ domain/
+   │  ├─ model/                            # Modelo de domínio puro (sem JPA)
+   │  │  └─ Book.java
+   │  └─ port/                             # Ports (interfaces) usadas pelo domínio
+   │     └─ BookRepositoryPort.java
+   ├─ adapter/
+   │  └─ out/persistence/                  # Adapters que conectam o domínio à infraestrutura
+   │     ├─ BookRepositoryAdapter.java     # Implementação da porta usando Spring Data JPA
+   │     └─ BookEntityMapper.java          # Converte entre entidade JPA e domínio
+   ├─ model/                               # Entidades JPA (infraestrutura)
+   │  └─ Book.java                         # Entidade persistível (Jakarta JPA)
+   ├─ repository/                          # Spring Data repositories
+   │  └─ BookRepository.java
+   └─ service/
+      └─ BookService.java                  # Caso de uso / camada de aplicação
+
+src/main/resources/graphql/schema.graphqls  # Schema GraphQL (queries & mutations)
 ```
 
-## Descrição dos Componentes
+Princípios e decisões de projeto
+--------------------------------
+- Domain separado da persistência: `domain.model.Book` (modelo de domínio) vs `model.Book` (entidade JPA).
+- Portas definem o contrato: `BookRepositoryPort` descreve o que o domínio espera de um repositório.
+- Adaptadores concretos implementam portas: `BookRepositoryAdapter` converte para/da entidade JPA e delega ao `BookRepository` (Spring Data).
+- Injeção por construtor e Imutabilidade em inputs GraphQL: `BookController` usa um `record` para representar `BookInput`.
+- Testes focados na camada de serviço usando mocks da porta (`BookRepositoryPort`).
 
-### 1. Model
-- **Book.java**: Representa a entidade Livro, com campos como id, título, autor e ano de publicação.
+Como rodar (local)
+------------------
+Pré-requisitos:
+- Java 21+
+- Maven (o wrapper `mvnw`/`mvnw.cmd` já está incluído)
 
-### 2. Repository
-- **BookRepository.java**: Interface para acesso aos dados dos livros (pode ser implementada com JPA ou em memória).
+1. Compilar e rodar os testes:
 
-### 3. Service
-- **BookService.java**: Camada de serviço que encapsula a lógica de negócio para manipulação dos livros.
+```cmd
+mvnw.cmd clean test
+```
 
-### 4. Controller
-- **BookController.java**: Expõe os endpoints GraphQL (queries e mutations) para interação com os livros.
+2. Rodar a aplicação:
 
-### 5. Schema GraphQL
-- **schema.graphqls**: Define o schema GraphQL, incluindo tipos, queries e mutations disponíveis.
+```cmd
+mvnw.cmd spring-boot:run
+```
 
-### 6. Testes
-- **BookServiceTest.java**: Testes unitários para a camada de serviço.
-- **GraphqlPocApplicationTests.java**: Testes de integração da aplicação.
+3. Acessar o GraphQL playground / IDE (depende da configuração):
+- Geralmente está disponível em: `http://localhost:8080/graphiql` ou `http://localhost:8080/playground`.
 
-## Exemplos de Operações GraphQL
-
-### Query: Listar todos os livros
+Exemplos de operações GraphQL
+-----------------------------
+Query: listar todos os livros
 ```graphql
 query {
   findAllBooks {
@@ -65,19 +90,7 @@ query {
 }
 ```
 
-### Query: Buscar livro por ID
-```graphql
-query {
-  findBookById(id: 1) {
-    id
-    title
-    author
-    publicationYear
-  }
-}
-```
-
-### Mutation: Criar um novo livro
+Mutation: criar um livro
 ```graphql
 mutation {
   createBook(book: {title: "Dom Casmurro", author: "Machado de Assis", publicationYear: 1899}) {
@@ -89,7 +102,7 @@ mutation {
 }
 ```
 
-### Mutation: Atualizar um livro
+Mutation: atualizar um livro
 ```graphql
 mutation {
   updateBook(id: 1, book: {title: "Memórias Póstumas", author: "Machado de Assis", publicationYear: 1881}) {
@@ -101,7 +114,7 @@ mutation {
 }
 ```
 
-### Mutation: Deletar um livro
+Mutation: deletar um livro
 ```graphql
 mutation {
   deleteBook(id: 1)
@@ -111,8 +124,8 @@ mutation {
 ## Como Executar o Projeto
 
 1. **Pré-requisitos:**
-   - Java 21 ou superior
-   - Maven
+    - Java 21 ou superior
+    - Maven
 
 2. **Instalar dependências e compilar:**
    ```cmd
@@ -125,7 +138,7 @@ mutation {
    ```
 
 4. **Acessar o playground GraphQL:**
-   - Normalmente disponível em `http://localhost:8080/graphiql` ou conforme configurado.
+    - Normalmente disponível em `http://localhost:8080/graphiql` ou conforme configurado.
 
 ## Personalização
 - O schema GraphQL pode ser ajustado em `src/main/resources/graphql/schema.graphqls`.
@@ -135,7 +148,19 @@ mutation {
 - [Spring for GraphQL Documentation](https://docs.spring.io/spring-graphql/docs/current/reference/html/)
 - [GraphQL Foundation](https://graphql.org/)
 
----
+Testes
+------
+- Testes unitários da camada de serviço estão em `src/test/java/.../BookServiceTest.java`.
+- Os testes usam Mockito para simular a `BookRepositoryPort`.
 
-**Autor:** Seu Nome
-**Licença:** MIT
+Próximos passos / melhorias possíveis
+-----------------------------------
+- Adicionar DTOs e validação explícita para inputs (ex.: `javax.validation`).
+- Cobertura de testes mais ampla (controller/graphql integration tests).
+- Implementar logs estruturados e tratamento centralizado de exceções.
+- Separar módulos (ex.: `application`, `domain`, `infrastructure`) em multi-módulos para projetos maiores.
+
+Licença e Autor
+---------------
+- Autor: Seu Nome
+- Licença: MIT

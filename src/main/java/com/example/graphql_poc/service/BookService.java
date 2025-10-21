@@ -1,9 +1,8 @@
 package com.example.graphql_poc.service;
 
 
-import com.example.graphql_poc.model.Book;
-import com.example.graphql_poc.repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.graphql_poc.domain.model.Book;
+import com.example.graphql_poc.domain.port.BookRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,8 +11,11 @@ import java.util.Optional;
 @Service
 public class BookService {
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepositoryPort bookRepository;
+
+    public BookService(BookRepositoryPort bookRepository) {
+        this.bookRepository = bookRepository;
+    }
 
     // CREATE e UPDATE
     public Book saveBook(Book book) {
@@ -32,10 +34,6 @@ public class BookService {
 
     // DELETE
     public boolean deleteBook(Long id) {
-        if (bookRepository.existsById(id)) {
-            bookRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        return bookRepository.deleteById(id);
     }
 }
